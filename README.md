@@ -2,6 +2,8 @@
 
 A PowerShell port of the Python [agno YFinanceTools](https://github.com/agno-agi/agno/blob/main/libs/agno/agno/tools/yfinance.py) toolkit for getting financial data from Yahoo Finance.
 
+<p align="center"><img src="media/logo.png" alt="alt text" width="200"></p>
+
 ## Features
 
 - **Get-CurrentStockPrice**: Get the current stock price for a given symbol
