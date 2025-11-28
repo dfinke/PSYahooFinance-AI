@@ -84,21 +84,21 @@ function Get-YahooFinanceQuote {
         
         # Build a quote object from chart metadata
         return @{
-            regularMarketPrice = $meta.regularMarketPrice
-            currentPrice = $meta.regularMarketPrice
-            previousClose = $meta.chartPreviousClose
-            currency = $meta.currency
-            symbol = $meta.symbol
-            exchangeName = $meta.exchangeName
-            fullExchangeName = $meta.fullExchangeName
-            longName = $meta.longName
-            shortName = $meta.shortName
-            fiftyTwoWeekHigh = $meta.fiftyTwoWeekHigh
-            fiftyTwoWeekLow = $meta.fiftyTwoWeekLow
+            regularMarketPrice   = $meta.regularMarketPrice
+            currentPrice         = $meta.regularMarketPrice
+            previousClose        = $meta.chartPreviousClose
+            currency             = $meta.currency
+            symbol               = $meta.symbol
+            exchangeName         = $meta.exchangeName
+            fullExchangeName     = $meta.fullExchangeName
+            longName             = $meta.longName
+            shortName            = $meta.shortName
+            fiftyTwoWeekHigh     = $meta.fiftyTwoWeekHigh
+            fiftyTwoWeekLow      = $meta.fiftyTwoWeekLow
             regularMarketDayHigh = $meta.regularMarketDayHigh
-            regularMarketDayLow = $meta.regularMarketDayLow
-            regularMarketVolume = $meta.regularMarketVolume
-            instrumentType = $meta.instrumentType
+            regularMarketDayLow  = $meta.regularMarketDayLow
+            regularMarketVolume  = $meta.regularMarketVolume
+            instrumentType       = $meta.instrumentType
         }
     }
     catch {
@@ -176,10 +176,16 @@ function Get-CurrentStockPrice {
             }
             
             if ($currentPrice) {
-                return "{0:N4}" -f $currentPrice
+                return [PSCustomObject]@{
+                    Symbol       = $Symbol
+                    CurrentPrice = $currentPrice
+                }
             }
             else {
-                return "Could not fetch current price for $Symbol"
+                return [PSCustomObject]@{
+                    Symbol       = $Symbol
+                    CurrentPrice = $null
+                }
             }
         }
         catch {
@@ -234,19 +240,19 @@ function Get-CompanyInfo {
             $currency = Get-ValueOrDefault $quote.currency 'USD'
             
             $companyInfo = [ordered]@{
-                Name                   = $quote.longName
-                ShortName              = $quote.shortName
-                Symbol                 = $quote.symbol
-                'Current Stock Price'  = "$($quote.regularMarketPrice) $currency"
-                Currency               = $currency
-                Exchange               = $quote.fullExchangeName
-                'Instrument Type'      = $quote.instrumentType
-                '52 Week Low'          = $quote.fiftyTwoWeekLow
-                '52 Week High'         = $quote.fiftyTwoWeekHigh
-                'Day Low'              = $quote.regularMarketDayLow
-                'Day High'             = $quote.regularMarketDayHigh
-                'Previous Close'       = $quote.previousClose
-                Volume                 = $quote.regularMarketVolume
+                Name                  = $quote.longName
+                ShortName             = $quote.shortName
+                Symbol                = $quote.symbol
+                'Current Stock Price' = "$($quote.regularMarketPrice) $currency"
+                Currency              = $currency
+                Exchange              = $quote.fullExchangeName
+                'Instrument Type'     = $quote.instrumentType
+                '52 Week Low'         = $quote.fiftyTwoWeekLow
+                '52 Week High'        = $quote.fiftyTwoWeekHigh
+                'Day Low'             = $quote.regularMarketDayLow
+                'Day High'            = $quote.regularMarketDayHigh
+                'Previous Close'      = $quote.previousClose
+                Volume                = $quote.regularMarketVolume
             }
             
             if ($AsObject) {
@@ -327,11 +333,11 @@ function Get-HistoricalStockPrices {
                 $date = [DateTimeOffset]::FromUnixTimeSeconds($timestamp).DateTime.ToString('yyyy-MM-dd HH:mm:ss')
                 
                 $historicalData[$date] = [ordered]@{
-                    Open      = $quote.open[$i]
-                    High      = $quote.high[$i]
-                    Low       = $quote.low[$i]
-                    Close     = $quote.close[$i]
-                    Volume    = $quote.volume[$i]
+                    Open   = $quote.open[$i]
+                    High   = $quote.high[$i]
+                    Low    = $quote.low[$i]
+                    Close  = $quote.close[$i]
+                    Volume = $quote.volume[$i]
                 }
             }
             
@@ -404,28 +410,30 @@ function Get-StockFundamentals {
             # Calculate percentage from 52-week high/low
             $pctFrom52WeekHigh = if ($fiftyTwoWeekHigh -and $currentPrice) {
                 [math]::Round((($currentPrice - $fiftyTwoWeekHigh) / $fiftyTwoWeekHigh) * 100, 2)
-            } else { 'N/A' }
+            }
+            else { 'N/A' }
             
             $pctFrom52WeekLow = if ($fiftyTwoWeekLow -and $currentPrice) {
                 [math]::Round((($currentPrice - $fiftyTwoWeekLow) / $fiftyTwoWeekLow) * 100, 2)
-            } else { 'N/A' }
+            }
+            else { 'N/A' }
             
             $fundamentals = [ordered]@{
-                symbol              = $Symbol
-                company_name        = $quote.longName
-                short_name          = $quote.shortName
-                current_price       = $currentPrice
-                currency            = $quote.currency
-                exchange            = $quote.fullExchangeName
-                instrument_type     = $quote.instrumentType
-                previous_close      = $quote.previousClose
-                day_high            = $quote.regularMarketDayHigh
-                day_low             = $quote.regularMarketDayLow
-                volume              = $quote.regularMarketVolume
-                '52_week_high'      = $fiftyTwoWeekHigh
-                '52_week_low'       = $fiftyTwoWeekLow
-                pct_from_52wk_high  = $pctFrom52WeekHigh
-                pct_from_52wk_low   = $pctFrom52WeekLow
+                symbol             = $Symbol
+                company_name       = $quote.longName
+                short_name         = $quote.shortName
+                current_price      = $currentPrice
+                currency           = $quote.currency
+                exchange           = $quote.fullExchangeName
+                instrument_type    = $quote.instrumentType
+                previous_close     = $quote.previousClose
+                day_high           = $quote.regularMarketDayHigh
+                day_low            = $quote.regularMarketDayLow
+                volume             = $quote.regularMarketVolume
+                '52_week_high'     = $fiftyTwoWeekHigh
+                '52_week_low'      = $fiftyTwoWeekLow
+                pct_from_52wk_high = $pctFrom52WeekHigh
+                pct_from_52wk_low  = $pctFrom52WeekLow
             }
             
             if ($AsObject) {
@@ -491,10 +499,10 @@ function Get-IncomeStatements {
                 
                 if (-not $yearlyData.ContainsKey($year)) {
                     $yearlyData[$year] = @{
-                        Opens = @()
-                        Closes = @()
-                        Highs = @()
-                        Lows = @()
+                        Opens   = @()
+                        Closes  = @()
+                        Highs   = @()
+                        Lows    = @()
                         Volumes = @()
                     }
                 }
@@ -512,35 +520,40 @@ function Get-IncomeStatements {
                 $data = $yearlyData[$year]
                 $avgClose = if ($data.Closes.Count -gt 0) { 
                     [math]::Round(($data.Closes | Measure-Object -Average).Average, 2) 
-                } else { 'N/A' }
+                }
+                else { 'N/A' }
                 
                 $yearHigh = if ($data.Highs.Count -gt 0) { 
                     ($data.Highs | Measure-Object -Maximum).Maximum 
-                } else { 'N/A' }
+                }
+                else { 'N/A' }
                 
                 $yearLow = if ($data.Lows.Count -gt 0) { 
                     ($data.Lows | Measure-Object -Minimum).Minimum 
-                } else { 'N/A' }
+                }
+                else { 'N/A' }
                 
                 $totalVolume = if ($data.Volumes.Count -gt 0) { 
                     ($data.Volumes | Measure-Object -Sum).Sum 
-                } else { 'N/A' }
+                }
+                else { 'N/A' }
                 
                 $yearOpen = if ($data.Opens.Count -gt 0) { $data.Opens[0] } else { 'N/A' }
                 $yearClose = if ($data.Closes.Count -gt 0) { $data.Closes[-1] } else { 'N/A' }
                 
                 $yearReturn = if ($yearOpen -ne 'N/A' -and $yearClose -ne 'N/A' -and $yearOpen -gt 0) {
                     [math]::Round((($yearClose - $yearOpen) / $yearOpen) * 100, 2)
-                } else { 'N/A' }
+                }
+                else { 'N/A' }
                 
                 $financials[$year] = [ordered]@{
-                    'Year Open'        = $yearOpen
-                    'Year Close'       = $yearClose
-                    'Year High'        = $yearHigh
-                    'Year Low'         = $yearLow
-                    'Average Close'    = $avgClose
-                    'Total Volume'     = $totalVolume
-                    'Year Return %'    = $yearReturn
+                    'Year Open'     = $yearOpen
+                    'Year Close'    = $yearClose
+                    'Year High'     = $yearHigh
+                    'Year Low'      = $yearLow
+                    'Average Close' = $avgClose
+                    'Total Volume'  = $totalVolume
+                    'Year Return %' = $yearReturn
                 }
             }
             
@@ -607,14 +620,15 @@ function Get-KeyFinancialRatios {
             $closes = $histQuote.close | Where-Object { $_ -ne $null }
             $dailyReturns = @()
             for ($i = 1; $i -lt $closes.Count; $i++) {
-                if ($closes[$i-1] -gt 0) {
-                    $dailyReturns += ($closes[$i] - $closes[$i-1]) / $closes[$i-1]
+                if ($closes[$i - 1] -gt 0) {
+                    $dailyReturns += ($closes[$i] - $closes[$i - 1]) / $closes[$i - 1]
                 }
             }
             
             $avgDailyReturn = if ($dailyReturns.Count -gt 0) {
                 [math]::Round(($dailyReturns | Measure-Object -Average).Average * 100, 4)
-            } else { 'N/A' }
+            }
+            else { 'N/A' }
             
             # Calculate standard deviation (volatility)
             $volatility = 'N/A'
@@ -643,31 +657,32 @@ function Get-KeyFinancialRatios {
             
             $ratios = [ordered]@{
                 # Price metrics
-                symbol                   = $Symbol
-                shortName                = $quote.shortName
-                longName                 = $quote.longName
-                regularMarketPrice       = $quote.regularMarketPrice
-                previousClose            = $quote.previousClose
-                currency                 = $quote.currency
+                symbol                  = $Symbol
+                shortName               = $quote.shortName
+                longName                = $quote.longName
+                regularMarketPrice      = $quote.regularMarketPrice
+                previousClose           = $quote.previousClose
+                currency                = $quote.currency
                 
                 # Day metrics
-                dayHigh                  = $quote.regularMarketDayHigh
-                dayLow                   = $quote.regularMarketDayLow
-                dayVolume                = $quote.regularMarketVolume
+                dayHigh                 = $quote.regularMarketDayHigh
+                dayLow                  = $quote.regularMarketDayLow
+                dayVolume               = $quote.regularMarketVolume
                 
                 # 52-week metrics
-                fiftyTwoWeekHigh         = $quote.fiftyTwoWeekHigh
-                fiftyTwoWeekLow          = $quote.fiftyTwoWeekLow
+                fiftyTwoWeekHigh        = $quote.fiftyTwoWeekHigh
+                fiftyTwoWeekLow         = $quote.fiftyTwoWeekLow
                 
                 # Calculated metrics
-                avgDailyReturnPct        = $avgDailyReturn
-                annualizedVolatilityPct  = $volatility
-                ytdReturnPct             = $ytdReturn
+                avgDailyReturnPct       = $avgDailyReturn
+                annualizedVolatilityPct = $volatility
+                ytdReturnPct            = $ytdReturn
                 
                 # Price change from previous close
-                dayChangePct             = if ($quote.previousClose -gt 0) {
+                dayChangePct            = if ($quote.previousClose -gt 0) {
                     [math]::Round((($quote.regularMarketPrice - $quote.previousClose) / $quote.previousClose) * 100, 2)
-                } else { 'N/A' }
+                }
+                else { 'N/A' }
             }
             
             if ($AsObject) {
@@ -766,35 +781,36 @@ function Get-AnalystRecommendations {
             }
             
             $recommendations = [ordered]@{
-                symbol              = $Symbol
-                companyName         = $meta.longName
-                currentPrice        = $currentPrice
-                currency            = $meta.currency
+                symbol            = $Symbol
+                companyName       = $meta.longName
+                currentPrice      = $currentPrice
+                currency          = $meta.currency
                 
                 # Moving averages
-                sma20               = $sma20
-                sma50               = $sma50
-                sma100              = $sma100
+                sma20             = $sma20
+                sma50             = $sma50
+                sma100            = $sma100
                 
                 # Position relative to MAs
-                aboveSMA20          = if ($sma20 -ne 'N/A') { $currentPrice -gt $sma20 } else { 'N/A' }
-                aboveSMA50          = if ($sma50 -ne 'N/A') { $currentPrice -gt $sma50 } else { 'N/A' }
-                aboveSMA100         = if ($sma100 -ne 'N/A') { $currentPrice -gt $sma100 } else { 'N/A' }
+                aboveSMA20        = if ($sma20 -ne 'N/A') { $currentPrice -gt $sma20 } else { 'N/A' }
+                aboveSMA50        = if ($sma50 -ne 'N/A') { $currentPrice -gt $sma50 } else { 'N/A' }
+                aboveSMA100       = if ($sma100 -ne 'N/A') { $currentPrice -gt $sma100 } else { 'N/A' }
                 
                 # Momentum
-                momentum5Day        = $momentum5d
-                momentum20Day       = $momentum20d
+                momentum5Day      = $momentum5d
+                momentum20Day     = $momentum20d
                 
                 # Overall analysis
-                trend               = $trend
-                technicalSignal     = $recommendation
+                trend             = $trend
+                technicalSignal   = $recommendation
                 
                 # 52-week context
-                fiftyTwoWeekHigh    = $meta.fiftyTwoWeekHigh
-                fiftyTwoWeekLow     = $meta.fiftyTwoWeekLow
-                pctFrom52WeekHigh   = if ($meta.fiftyTwoWeekHigh -gt 0) {
+                fiftyTwoWeekHigh  = $meta.fiftyTwoWeekHigh
+                fiftyTwoWeekLow   = $meta.fiftyTwoWeekLow
+                pctFrom52WeekHigh = if ($meta.fiftyTwoWeekHigh -gt 0) {
                     [math]::Round((($currentPrice - $meta.fiftyTwoWeekHigh) / $meta.fiftyTwoWeekHigh) * 100, 2)
-                } else { 'N/A' }
+                }
+                else { 'N/A' }
             }
             
             if ($AsObject) {
@@ -860,12 +876,12 @@ function Get-CompanyNews {
                 }
                 
                 $newsItem = [ordered]@{
-                    title         = $item.title
-                    publisher     = $item.publisher
-                    link          = $item.link
+                    title               = $item.title
+                    publisher           = $item.publisher
+                    link                = $item.link
                     providerPublishTime = $publishTime
-                    type          = $item.type
-                    relatedTickers = $item.relatedTickers
+                    type                = $item.type
+                    relatedTickers      = $item.relatedTickers
                 }
                 $news += $newsItem
             }
@@ -949,11 +965,11 @@ function Get-TechnicalIndicators {
                 }
                 
                 $indicators[$date] = [ordered]@{
-                    Open      = $quote.open[$i]
-                    High      = $quote.high[$i]
-                    Low       = $quote.low[$i]
-                    Close     = $quote.close[$i]
-                    Volume    = $quote.volume[$i]
+                    Open        = $quote.open[$i]
+                    High        = $quote.high[$i]
+                    Low         = $quote.low[$i]
+                    Close       = $quote.close[$i]
+                    Volume      = $quote.volume[$i]
                     'Adj Close' = $adjCloseValue
                 }
             }
@@ -962,12 +978,12 @@ function Get-TechnicalIndicators {
                 $result = @()
                 foreach ($key in $indicators.Keys | Sort-Object) {
                     $result += [PSCustomObject]@{
-                        Date      = $key
-                        Open      = $indicators[$key].Open
-                        High      = $indicators[$key].High
-                        Low       = $indicators[$key].Low
-                        Close     = $indicators[$key].Close
-                        Volume    = $indicators[$key].Volume
+                        Date        = $key
+                        Open        = $indicators[$key].Open
+                        High        = $indicators[$key].High
+                        Low         = $indicators[$key].Low
+                        Close       = $indicators[$key].Close
+                        Volume      = $indicators[$key].Volume
                         'Adj Close' = $indicators[$key]['Adj Close']
                     }
                 }
