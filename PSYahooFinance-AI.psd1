@@ -3,7 +3,7 @@
     RootModule        = 'PSYahooFinance-AI.psm1'
     
     # Version number of this module
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '1.0.1'
     
     # ID used to uniquely identify this module
     GUID              = '0601662b-f6ea-4c7f-86fd-4d97b9a58de3'
